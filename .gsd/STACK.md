@@ -6,47 +6,43 @@
 
 | Technology | Version | Purpose |
 |------------|---------|---------|
-| Node.js | v20+ | Multi-platform JavaScript runtime |
-| TypeScript | ^5.0.0 | Static typing and modern JS features |
+| Next.js | 16.1.6 | Core Web Framework (App Router) |
+| React | 19.2.3 | UI Library |
+| Node.js | ^20.x | Execution Environment |
 
 ## Dependencies
 
 ### Production
 | Package | Version | Purpose |
 |---------|---------|---------|
-| next | 16.1.6 | Full-stack web framework (App Router) |
-| react | 19.2.3 | UI library |
-| prisma | 5.22.0 | ORM for database management |
-| next-auth | 4.24.13 | Authentication and session management |
-| tailwindcss | ^4 | Utility-first CSS framework |
-| zod | ^4.3.6 | Schema-based validation |
-| framer-motion | ^12.34.0| UI animations and transitions |
-| lucide-react | ^0.564.0| Icon set |
+| @prisma/client | ^5.22.0 | ORM Client |
+| next-auth | ^4.24.13 | Authentication |
+| framer-motion | ^12.34.0 | Animations |
+| lucide-react | ^0.564.0 | Icons |
+| zod | ^4.3.6 | Schema Validation |
+| bcryptjs | ^3.0.3 | Password Hashing |
+| date-fns | ^4.1.0 | Date Utility |
 
 ### Development
 | Package | Version | Purpose |
 |---------|---------|---------|
-| typescript | ^5.0.0 | Type checking |
-| eslint | ^9.0.0 | Linting |
-| @prisma/client| 5.22.0 | Type-safe database client generator |
-| shadcn | ^3.8.4 | Component generator and UI kit |
+| prisma | ^5.22.0 | ORM CLI |
+| tailwindcss | ^4 | Styling (v4) |
+| typescript | ^5 | Language |
+| eslint | ^9 | Linting |
+| shadcn | ^3.8.4 | UI Component CLI |
 
 ## Infrastructure
 
 | Service | Provider | Purpose |
 |---------|----------|---------|
-| SQLite | Local/File | Development database |
-| Prisma ORM | - | Database layer abstraction |
+| Database | PostgreSQL | Relational Data Storage |
+| Authentication | Next-Auth | Provider-based Auth |
 
 ## Configuration
 
 | Variable | Purpose | Location |
 |----------|---------|----------|
-| DATABASE_URL | Connection string for Prisma | `.env` |
-| NEXTAUTH_SECRET| Encryption secret for auth | `.env` |
-| NEXTAUTH_URL | Base URL for authentication | `.env` |
-
-## Outdated Packages
-
-*Note: Running `npm outdated` recommended for exact versions.*
-Current highlights: Using Next.js 16 (cutting edge) and Prisma 5.22.
+| DATABASE_URL | Connection string for DB | .env |
+| NEXTAUTH_SECRET | Secret for JWT signing | .env |
+| NEXTAUTH_URL | App base URL | .env |

@@ -4,82 +4,60 @@
 
 ## Overview
 
-Kaku is an Integrated Digital Healthcare & Online Pharmacy Platform constructed with a modern Next.js 16 App Router architecture. It follows a modular design splitting concerns between UI, shared business logic, and domain-specific features.
+Kaku is a comprehensive healthcare and pharmacy platform built with Next.js. It supports multiple user roles including Patients, Doctors, and Pharmacists, facilitating telehealth, prescription management, and medication ordering.
 
 ```mermaid
 graph TD
-    subgraph "Frontend (Next.js App Router)"
-        A[Root Layout] --> B[Navbar]
-        A --> C[Page Components]
-        C --> D[Feature Components]
-        D --> E[Shared Components]
-        E --> F[UI Components]
-    end
-
-    subgraph "Backend (Server Actions & API)"
-        G[Server Actions] --> H[Prisma Client]
-        I[API Routes] --> H
-    end
-
-    subgraph "Data Layer"
-        H --> J[(SQLite Database)]
-    end
-
-    subgraph "Authentication"
-        K[NextAuth.js] --> L[Credentials Provider]
-        L --> H
-    end
+    User((User)) -->|Auth| App[Next.js App]
+    App -->|Prisma| DB[(PostgreSQL)]
+    App -->|Roles| Profiles{Profile Type}
+    Profiles --> Patient[Patient Profile]
+    Profiles --> Doctor[Doctor Profile]
+    Profiles --> Pharmacist[Pharmacist Profile]
+    
+    Patient --> Appointments[Appointments]
+    Patient --> Prescriptions[Prescriptions]
+    Patient --> Orders[Orders]
+    
+    Doctor --> Prescriptions
+    Doctor --> Records[Medical Records]
+    Doctor --> Consultations[Video Consultations]
+    
+    Pharmacist --> Orders
+    Pharmacist --> Inventory[Medication Inventory]
 ```
 
 ## Components
 
-### Core Layout (`src/app`)
-- **Purpose:** Defines the application shell, routing, and global providers.
-- **Location:** `src/app/`
-- **Dependencies:** `next-auth`, `Geist font`, `Tailwind CSS`.
+### Authentication
+- **Purpose:** Secure login and registration with role-based access.
+- **Location:** `src/app/login`, `src/app/register`, `src/lib/auth.ts`, `src/lib/actions/auth.ts`
+- **Details:** Uses `next-auth` for session management and `bcryptjs` for password hashing.
 
-### Library (`src/lib`)
-- **Purpose:** Contains core business logic, database initialization, and authentication configurations.
-- **Location:** `src/lib/`
-- **Sub-components:**
-  - `prisma.ts`: Singleton Prisma client.
-  - `auth.ts`: NextAuth configuration and providers.
-  - `actions/`: Server actions for mutations (Auth, EMR, Appointments, etc.).
+### Profiles
+- **Purpose:** Role-specific data storage and management.
+- **Location:** `src/app/patient`, `src/app/doctor`, `src/app/pharmacist`, `src/app/admin`
+- **Details:** Split into role-based directories in the app router.
 
-### UI System (`src/components`)
-- **Purpose:** Nested component structure for maximum reusability.
-- **Location:** `src/components/`
-- **Sub-components:**
-  - `ui/`: Base primitives (Buttons, Inputs, etc.) mostly from shadcn/ui.
-  - `shared/`: Generic reusable components (Navbar, AuthProvider).
-  - `features/`: Domain-specific components grouped by feature (EMR, Orders, etc.).
+### Medical Records & Prescriptions
+- **Purpose:** Managing patient health data and medication orders.
+- **Location:** `src/lib/actions/medical.ts`, `src/lib/actions/prescription.ts`
+- **Details:** Integrated with Prisma models for `MedicalRecordEntry` and `Prescription`.
+
+### Telehealth
+- **Purpose:** Video consultations between doctors and patients.
+- **Location:** `src/app/(telehealth)/[role]/appointments/[id]/room`
+- **Details:** Room-based video conferencing infrastructure (likely using a third-party SDK or custom WebRTC).
 
 ## Data Flow
 
-1. **User Interaction:** User interacts with a Client Component (e.g., Register Form).
-2. **Action Dispatch:** The component calls a Server Action defined in `src/lib/actions`.
-3. **Validation & Logic:** The action validates input using **Zod** and performs business logic.
-4. **Data Persistence:** The action uses the **Prisma** client to read/write to **SQLite**.
-5. **Session Management:** **NextAuth** handles identity verification via JWT and callbacks.
-6. **UI Update:** The page re-renders based on the action response or redirects.
-
-## Integration Points
-
-| Service | Type | Purpose |
-|---------|------|---------|
-| SQLite | Database | Primary data persistence |
-| NextAuth | Auth | Identity and access management |
-| Tailwind CSS | Styling | Design system and responsive layouts |
+1. **Authentication:** User logs in → `next-auth` session created → Middleware checks roles → Directed to appropriate dashboard.
+2. **Consultation:** Doctor creates appointment → Patient receives notification → Both join the `room` at scheduled time.
+3. **Prescription to Order:** Doctor issues prescription → Patient views and converts to order → Pharmacist processes order → Delivery status updated.
 
 ## Technical Debt
 
-- [ ] **Deployment Readiness:** Currently hardcoded for SQLite; needs PostgreSQL migration for cloud hosting.
-- [ ] **Placeholder Logic:** Some license numbers and IDs use `TEMP-` placeholders in actions.
-- [ ] **Error Handling:** Standardized error boundaries and logging are partially implemented.
-- [ ] **Testing:** Minimal automated test coverage observed for critical clinical paths.
-
-## Conventions
-
-**Naming:** PascalCase for components, kebab-case for directories, camelCase for functions/actions.
-**Structure:** Feature-based folder organization for components.
-**Testing:** Patterns identified in `__tests__` (if present) or hinted in `package.json`.
+- [ ] **Lint Errors:** 161 issues found (101 errors, 60 warnings).
+- [ ] **Type Safety:** Excessive use of `any` in library actions and auth files.
+- [ ] **Unused Variables:** Many functions define parameters or variables that are never used.
+- [ ] **Prisma Schema:** Complex relations might need optimization as the data grows.
