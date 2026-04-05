@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "prisma:pg": "sed -i 's/provider = \"sqlite\"/provider = \"postgresql\"/g' prisma/schema.prisma",
+    "prisma:sqlite": "sed -i 's/provider = \"postgresql\"/provider = \"sqlite\"/g' prisma/schema.prisma"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1024.0",
