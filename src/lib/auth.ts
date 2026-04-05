@@ -10,7 +10,7 @@ export const authOptions: NextAuthOptions = {
     pages: {
         signIn: "/login",
     },
-    debug: true,
+    debug: false,
     logger: {
         error(code, metadata) {
             console.error(code, metadata)
