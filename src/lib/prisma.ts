@@ -1,7 +1,6 @@
 import { PrismaClient } from "@prisma/client"
 
 const prismaClientSingleton = () => {
-    // Prisma 7 should pick up DATABASE_URL from the environment or prisma.config.ts
     return new PrismaClient()
 }
 
