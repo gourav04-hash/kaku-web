@@ -5,18 +5,34 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { revalidatePath } from "next/cache"
 
+interface PrescriptionItemInput {
+    medicationName: string
+    dosage: string
+    frequency: string
+    duration?: string
+    instructions?: string
+}
+
 export async function requestRefill(prescriptionId: string) {
     const session = await getServerSession(authOptions)
     if (!session) return { error: "Unauthorized" }
 
     try {
-        const px = await prisma.prescription.findUnique({ where: { id: prescriptionId } })
+        const px = await prisma.prescription.findUnique({
+            where: { id: prescriptionId },
+            select: {
+                id: true,
+                doctorId: true,
+                refillsRequested: true,
+                refillsAllowed: true
+            }
+        })
+
         if (!px) return { error: "Prescription not found" }
         if (px.refillsRequested >= px.refillsAllowed) {
             return { error: "No refills remaining for this prescription." }
         }
 
-        // Need to get the doctor's userId from the doctorProfile
         const doctorProfile = await prisma.doctorProfile.findUnique({
             where: { id: px.doctorId },
             select: { userId: true }
@@ -33,7 +49,7 @@ export async function requestRefill(prescriptionId: string) {
 
         await prisma.notification.create({
             data: {
-                userId: doctorProfile.userId, // Use the doctor's userId
+                userId: doctorProfile.userId,
                 title: "Refill Request",
                 message: `Patient has requested a refill for prescription #${px.id.slice(-6).toUpperCase()}`,
                 type: "PRESCRIPTION"
@@ -50,17 +66,17 @@ export async function requestRefill(prescriptionId: string) {
 
 export async function createPrescription(
     patientId: string,
-    items: { medicationName: string; dosage: string; frequency: string; duration?: string; instructions?: string }[],
+    items: PrescriptionItemInput[],
     notes?: string
 ) {
     const session = await getServerSession(authOptions)
 
-    if (!session || (session.user as any).role !== "DOCTOR") {
+    if (!session || session.user.role !== "DOCTOR") {
         return { error: "Unauthorized. Only doctors can issue prescriptions." }
     }
 
     const doctor = await prisma.doctorProfile.findUnique({
-        where: { userId: (session.user as any).id }
+        where: { userId: session.user.id }
     })
 
     if (!doctor) {
@@ -69,7 +85,7 @@ export async function createPrescription(
 
     try {
         const expiresAt = new Date()
-        expiresAt.setMonth(expiresAt.getMonth() + 3) // Valid for 3 months by default
+        expiresAt.setMonth(expiresAt.getMonth() + 3)
 
         const prescription = await prisma.prescription.create({
             data: {
@@ -101,10 +117,8 @@ export async function getPrescriptions(patientId?: string) {
         return { error: "Unauthorized" }
     }
 
-    const userRole = (session.user as any).role
-    const userId = (session.user as any).id
-
-    let where: any = {}
+    const { role: userRole, id: userId } = session.user
+    const where: Record<string, any> = {}
 
     if (userRole === "PATIENT") {
         const patientProfile = await prisma.patientProfile.findUnique({
@@ -146,6 +160,7 @@ export async function getPrescriptions(patientId?: string) {
 
         return { success: true, prescriptions }
     } catch (error) {
+        console.error("Fetch Prescriptions Error:", error)
         return { error: "Failed to fetch prescriptions." }
     }
 }

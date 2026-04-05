@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -169,6 +169,8 @@ model Prescription {
 
   items       PrescriptionItem[]
   order       Order?
+  refillsAllowed   Int      @default(0)
+  refillsRequested Int      @default(0)
 }
 
 model PrescriptionItem {
@@ -242,8 +244,6 @@ model Appointment {
   type            String   @default("VIDEO") // VIDEO, IN_PERSON
   notes           String?
   roomId          String?  @unique // For video consultation
-  refillsAllowed   Int      @default(0)
-  refillsRequested Int      @default(0)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 }

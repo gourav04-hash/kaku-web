@@ -5,13 +5,38 @@ import { Pill, Calendar, User, RotateCcw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { CheckoutModal } from "../orders/checkout-modal"
 
+interface PrescriptionItem {
+    id: string;
+    medicationName: string;
+    dosage: string;
+    frequency: string;
+    duration?: string;
+    instructions?: string;
+}
+
+interface Prescription {
+    id: string;
+    status: string;
+    createdAt: string | Date;
+    expiresAt?: string | Date;
+    notes?: string;
+    refillsAllowed: number;
+    refillsRequested: number;
+    doctor: {
+        user: {
+            name: string;
+        };
+    };
+    items: PrescriptionItem[];
+}
+
 interface PrescriptionCardProps {
-    prescription: any
+    prescription: Prescription
     role?: string
 }
 
 export const PrescriptionCard = ({ prescription, role }: PrescriptionCardProps) => {
-    const statusColors: any = {
+    const statusColors: Record<string, string> = {
         ACTIVE: "bg-green-100 text-green-700",
         FULFILLED: "bg-blue-100 text-blue-700",
         EXPIRED: "bg-gray-100 text-gray-700",
@@ -40,7 +65,7 @@ export const PrescriptionCard = ({ prescription, role }: PrescriptionCardProps) 
             </CardHeader>
             <CardContent className="pt-4 space-y-4">
                 <div className="space-y-3">
-                    {prescription.items.map((item: any) => (
+                    {prescription.items.map((item: PrescriptionItem) => (
                         <div key={item.id} className="flex items-start gap-3 p-3 bg-muted/30 rounded-lg">
                             <div className="p-2 bg-primary/10 rounded-full mt-0.5">
                                 <Pill className="h-4 w-4 text-primary" />
